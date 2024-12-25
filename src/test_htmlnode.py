@@ -18,5 +18,5 @@ class TestHTMLNode(unittest.TestCase):
         child_node = HTMLNode(tag="a")
         node = HTMLNode(tag="a", value="This is text", children=[child_node], props={"href": "https://www.google.com", "target": "_blank",}, )
         self.assertEqual(
-            node.__repr__(), "HTMLNode(tag=\"a\", value=\"This is text\", children=\"[HTMLNode(tag=\"a\", value=\"None\", children=\"None\", props=\"\")]\", props=\" href=\"https://www.google.com\" target=\"_blank\"\")"
+            node.__repr__(), "HTMLNode(tag=\"a\", value=\"This is text\", children=\"[HTMLNode(tag=\"a\", value=\"\", children=\"None\", props=\"\")]\", props=\" href=\"https://www.google.com\" target=\"_blank\"\")"
             )

@@ -13,3 +13,8 @@ class TestLeafNode(unittest.TestCase):
     def test_to_html_false(self):
         node = LeafNode(tag="p", value="This is a paragraph of text.")
         self.assertNotEqual(node.to_html(), "<a href=\"https://www.google.com\">Click me!</a>")
+    
+    def test_to_html_error(self):
+        node = LeafNode()
+        with self.assertRaises(ValueError, msg="No value on leaf node."):
+            node.to_html()
