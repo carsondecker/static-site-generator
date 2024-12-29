@@ -1,5 +1,5 @@
 import unittest
-from splitter import split_nodes_delimiter
+from splitter import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 from textnode import TextNode, TextType
 
 class TestSplitter(unittest.TestCase):
@@ -75,3 +75,23 @@ class TestSplitter(unittest.TestCase):
         node = TextNode("This is **invalid markdown syntax", TextType.TEXT)
         with self.assertRaises(Exception, msg="Missing matching delimiter \"**\""):
             new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+    
+    def test_extract_markdown_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        extracted_images = extract_markdown_images(text)
+        self.assertEqual(extracted_images, [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")])
+    
+    def test_extract_markdown_images_2(self):
+        text = "There's no markdown images but there's some random stuff !(ad s)[asdf](11123)"
+        extracted_images = extract_markdown_images(text)
+        self.assertEqual(extracted_images, [])
+    
+    def test_extract_markdown_links(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        extracted_links = extract_markdown_links(text)
+        self.assertEqual(extracted_links, [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")])
+    
+    def test_extract_markdown_links_2(self):
+        text = "There's no markdown links but there's some random stuff (ad s)[asdf]!(11123)"
+        extracted_links = extract_markdown_links(text)
+        self.assertEqual(extracted_links, [])
