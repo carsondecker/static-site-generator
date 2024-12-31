@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextType, TextNode
-from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type
+from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type, remove_block_markdown
 
 class TestConverter(unittest.TestCase):
     def test_text_to_textnodes(self):
@@ -33,11 +33,6 @@ class TestConverter(unittest.TestCase):
         markdown = "# This is a heading\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n* This is the first list item in a list block\n* This is a list item\n* This is another list item"
         self.assertEqual(markdown_to_blocks(markdown), ["# This is a heading", "This is a paragraph of text. It has some **bold** and *italic* words inside of it.", "* This is the first list item in a list block\n* This is a list item\n* This is another list item"])
     
-    '''
-    def test_block_to_block_type(self):
-        block = ""
-        self.assertEqual(block_to_block_type(block), BlockType.)
-    '''
     def test_block_to_block_type_paragraph(self):
         block = ">*1. This is just a misleading paragraph"
         self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
@@ -51,7 +46,7 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(block_to_block_type(block), BlockType.CODE)
     
     def test_block_to_block_type_quote(self):
-        block = "> This\n> is\n> a> quote"
+        block = "> This\n> is\n> a\n> quote"
         self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
     
     def test_block_to_block_type_ul(self):
@@ -61,3 +56,27 @@ class TestConverter(unittest.TestCase):
     def test_block_to_block_type_ol(self):
         block = "1. This\n2. is\n3. an\n4. ordered\n5. list"
         self.assertEqual(block_to_block_type(block), BlockType.ORDERED_LIST)
+    
+    def test_remove_block_markdown_paragraph(self):
+        block = ">*1. This is just a misleading paragraph"
+        self.assertEqual(remove_block_markdown(block, BlockType.PARAGRAPH), ">*1. This is just a misleading paragraph")
+    
+    def test_remove_block_markdown_heading(self):
+        block = "#### This is a heading"
+        self.assertEqual(remove_block_markdown(block, BlockType.HEADING), "This is a heading")
+    
+    def test_remove_block_markdown_code(self):
+        block = "```This is code```"
+        self.assertEqual(remove_block_markdown(block, BlockType.CODE), "This is code")
+    
+    def test_remove_block_markdown_quote(self):
+        block = "> This\n> is\n> a\n> quote"
+        self.assertEqual(remove_block_markdown(block, BlockType.QUOTE), "This\nis\na\nquote")
+    
+    def test_remove_block_markdown_ul(self):
+        block = "* This\n* is\n* an\n* unordered\n* list"
+        self.assertEqual(remove_block_markdown(block, BlockType.UNORDERED_LIST), "This\nis\nan\nunordered\nlist")
+    
+    def test_remove_block_markdown_ol(self):
+        block = "1. This\n2. is\n3. an\n4. ordered\n5. list"
+        self.assertEqual(remove_block_markdown(block, BlockType.UNORDERED_LIST), "This\nis\nan\nordered\nlist")

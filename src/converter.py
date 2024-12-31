@@ -25,7 +25,7 @@ class BlockType(Enum):
     PARAGRAPH = "p"
     HEADING = "h1"
     CODE = "code"
-    QUOTE = "quote"
+    QUOTE = "q"
     UNORDERED_LIST = "ul"
     ORDERED_LIST = "ol"
 
@@ -42,3 +42,27 @@ def block_to_block_type(block):
     if all(re.match(r"^(\d+)\.\s", line) and int(re.match(r"^(\d+)\.\s", line).group(1)) == i + 1 for i, line in enumerate(split_lines)):
         return BlockType.ORDERED_LIST
     return BlockType.PARAGRAPH
+
+def remove_block_markdown(block, block_type):
+    match block_type:
+        case BlockType.HEADING:
+            first_space_index = block.find(" ")
+            return block[first_space_index + 1:]
+        case BlockType.CODE:
+            return block[3:-3]
+        case BlockType.QUOTE:
+            return block.replace("> ", "")
+        case BlockType.UNORDERED_LIST:
+            line_list = []
+            for line in block.splitlines():
+                first_space_index = line.find(" ")
+                line_list.append(line[first_space_index + 1:])
+            return "\n".join(line_list)
+        case BlockType.ORDERED_LIST:
+            line_list = []
+            for line in block.splitlines():
+                first_space_index = line.find(" ")
+                line_list.append(line[first_space_index + 1:])
+            return "\n".join(line_list)
+        case _:
+            return block
