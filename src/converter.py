@@ -1,3 +1,5 @@
+import re
+from enum import Enum
 from textnode import TextType, TextNode
 from splitter import split_nodes_image, split_nodes_link, split_nodes_delimiter
 
@@ -14,8 +16,29 @@ def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")
     new_blocks = []
     for block in blocks:
-        block.lstrip("\n")
-        block.strip()
+        block.strip(" \n")
         if block != "":
             new_blocks.append(block)
     return new_blocks
+
+class BlockType(Enum):
+    PARAGRAPH = "p"
+    HEADING = "h1"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "ul"
+    ORDERED_LIST = "ol"
+
+def block_to_block_type(block):
+    split_lines = block.split("\n")
+    if re.match(r"^(#{1,6})\s", split_lines[0]):
+        return BlockType.HEADING
+    if len(block) > 6 and block[:3] == "```" and block[-3:] == "```":
+        return BlockType.CODE
+    if all(line.startswith("> ") for line in split_lines):
+        return BlockType.QUOTE
+    if all(line.startswith("* ") or line.startswith("- ") for line in split_lines):
+        return BlockType.UNORDERED_LIST
+    if all(re.match(r"^(\d+)\.\s", line) and int(re.match(r"^(\d+)\.\s", line).group(1)) == i + 1 for i, line in enumerate(split_lines)):
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH

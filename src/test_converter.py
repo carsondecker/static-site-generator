@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextType, TextNode
-from converter import text_to_textnodes, markdown_to_blocks
+from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type
 
 class TestConverter(unittest.TestCase):
     def test_text_to_textnodes(self):
@@ -32,3 +32,32 @@ class TestConverter(unittest.TestCase):
     def test_markdown_to_blocks(self):
         markdown = "# This is a heading\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n* This is the first list item in a list block\n* This is a list item\n* This is another list item"
         self.assertEqual(markdown_to_blocks(markdown), ["# This is a heading", "This is a paragraph of text. It has some **bold** and *italic* words inside of it.", "* This is the first list item in a list block\n* This is a list item\n* This is another list item"])
+    
+    '''
+    def test_block_to_block_type(self):
+        block = ""
+        self.assertEqual(block_to_block_type(block), BlockType.)
+    '''
+    def test_block_to_block_type_paragraph(self):
+        block = ">*1. This is just a misleading paragraph"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+    
+    def test_block_to_block_type_heading(self):
+        block = "#### This is a heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+    
+    def test_block_to_block_type_code(self):
+        block = "```This is code```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+    
+    def test_block_to_block_type_quote(self):
+        block = "> This\n> is\n> a> quote"
+        self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
+    
+    def test_block_to_block_type_ul(self):
+        block = "* This\n* is\n* an\n* unordered\n* list"
+        self.assertEqual(block_to_block_type(block), BlockType.UNORDERED_LIST)
+    
+    def test_block_to_block_type_ol(self):
+        block = "1. This\n2. is\n3. an\n4. ordered\n5. list"
+        self.assertEqual(block_to_block_type(block), BlockType.ORDERED_LIST)
