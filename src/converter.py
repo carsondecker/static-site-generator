@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from textnode import TextType, TextNode
+from htmlnode import HTMLNode
 from splitter import split_nodes_image, split_nodes_link, split_nodes_delimiter
 
 def text_to_textnodes(text):
@@ -23,16 +24,17 @@ def markdown_to_blocks(markdown):
 
 class BlockType(Enum):
     PARAGRAPH = "p"
-    HEADING = "h1"
+    HEADING = "h"
     CODE = "code"
-    QUOTE = "q"
+    QUOTE = "blockquote"
     UNORDERED_LIST = "ul"
     ORDERED_LIST = "ol"
+    LIST_ITEM = "li"
 
 def block_to_block_type(block):
     split_lines = block.split("\n")
     if re.match(r"^(#{1,6})\s", split_lines[0]):
-        return BlockType.HEADING
+        return BlockType.HEADING, split_lines[0].find(" ") 
     if len(block) > 6 and block[:3] == "```" and block[-3:] == "```":
         return BlockType.CODE
     if all(line.startswith("> ") for line in split_lines):
@@ -51,7 +53,11 @@ def remove_block_markdown(block, block_type):
         case BlockType.CODE:
             return block[3:-3]
         case BlockType.QUOTE:
-            return block.replace("> ", "")
+            line_list = []
+            for line in block.splitlines():
+                first_space_index = line.find(" ")
+                line_list.append(line[first_space_index + 1:])
+            return "\n".join(line_list)
         case BlockType.UNORDERED_LIST:
             line_list = []
             for line in block.splitlines():
@@ -66,3 +72,18 @@ def remove_block_markdown(block, block_type):
             return "\n".join(line_list)
         case _:
             return block
+
+def block_to_html_node(block, block_type, headingNum=None):
+    if block_type == BlockType.ORDERED_LIST or block_type == BlockType.UNORDERED_LIST:
+        list_items = []
+        cleaned_block = remove_block_markdown(block, block_type)
+        for line in cleaned_block.splitlines():
+            list_items.append(block_to_html_node(line, BlockType.LIST_ITEM))
+        return HTMLNode(tag=block_type.value, children=list_items)
+    textnodes = text_to_textnodes(remove_block_markdown(block, block_type))
+    htmlnodes = []
+    for textnode in textnodes:
+        htmlnodes.append(textnode.text_node_to_html_node())
+    if block_type == BlockType.HEADING:
+        return HTMLNode(tag=f"h{headingNum}", children=htmlnodes)
+    return HTMLNode(tag=block_type.value, children=htmlnodes)

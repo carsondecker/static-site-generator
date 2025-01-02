@@ -1,6 +1,8 @@
 import unittest
 from textnode import TextType, TextNode
-from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type, remove_block_markdown
+from htmlnode import HTMLNode
+from leafnode import LeafNode
+from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type, remove_block_markdown, block_to_html_node
 
 class TestConverter(unittest.TestCase):
     def test_text_to_textnodes(self):
@@ -39,7 +41,7 @@ class TestConverter(unittest.TestCase):
     
     def test_block_to_block_type_heading(self):
         block = "#### This is a heading"
-        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+        self.assertEqual(block_to_block_type(block), (BlockType.HEADING, 4))
     
     def test_block_to_block_type_code(self):
         block = "```This is code```"
@@ -80,3 +82,18 @@ class TestConverter(unittest.TestCase):
     def test_remove_block_markdown_ol(self):
         block = "1. This\n2. is\n3. an\n4. ordered\n5. list"
         self.assertEqual(remove_block_markdown(block, BlockType.UNORDERED_LIST), "This\nis\nan\nordered\nlist")
+    
+    def test_block_to_html_node_heading(self):
+        block = "#### This is a heading"
+        block_type, headingNum = block_to_block_type(block)
+        self.assertEqual(block_to_html_node(block, block_type, headingNum).__repr__(), HTMLNode(tag="h4", children=[LeafNode(value="This is a heading")]).__repr__())
+    
+    def test_block_to_html_node_ol(self):
+        block = "1. This\n2. is\n3. an\n4. ordered\n5. list"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_to_html_node(block, block_type).__repr__(), HTMLNode(tag="ol", children=[HTMLNode(tag="li", children=[LeafNode(value="This")]), HTMLNode(tag="li", children=[LeafNode(value="is")]), HTMLNode(tag="li", children=[LeafNode(value="an")]), HTMLNode(tag="li", children=[LeafNode(value="ordered")]), HTMLNode(tag="li", children=[LeafNode(value="list")])]).__repr__())
+    
+    def test_block_to_html_node_quote(self):
+        block = "> This\n> is\n> a\n> quote"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_to_html_node(block, block_type).__repr__(), HTMLNode(tag="blockquote", children=[LeafNode(value="This\nis\na\nquote")]).__repr__())
