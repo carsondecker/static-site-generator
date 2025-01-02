@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 from textnode import TextType, TextNode
-from htmlnode import HTMLNode
+from parentnode import ParentNode
 from splitter import split_nodes_image, split_nodes_link, split_nodes_delimiter
 
 def text_to_textnodes(text):
@@ -51,7 +51,7 @@ def remove_block_markdown(block, block_type):
             first_space_index = block.find(" ")
             return block[first_space_index + 1:]
         case BlockType.CODE:
-            return block[3:-3]
+            return block[3:-3].lstrip()
         case BlockType.QUOTE:
             line_list = []
             for line in block.splitlines():
@@ -79,16 +79,16 @@ def block_to_html_node(block, block_type, headingNum=None):
         cleaned_block = remove_block_markdown(block, block_type)
         for line in cleaned_block.splitlines():
             list_items.append(block_to_html_node(line, BlockType.LIST_ITEM))
-        return HTMLNode(tag=block_type.value, children=list_items)
+        return ParentNode(tag=block_type.value, children=list_items)
     textnodes = text_to_textnodes(remove_block_markdown(block, block_type))
     htmlnodes = []
     for textnode in textnodes:
         htmlnodes.append(textnode.text_node_to_html_node())
     if block_type == BlockType.HEADING:
-        return HTMLNode(tag=f"h{headingNum}", children=htmlnodes)
+        return ParentNode(tag=f"h{headingNum}", children=htmlnodes)
     if block_type == BlockType.CODE:
-        return HTMLNode(tag="pre", children=[HTMLNode(tag="code", children=htmlnodes)])
-    return HTMLNode(tag=block_type.value, children=htmlnodes)
+        return ParentNode(tag="pre", children=[ParentNode(tag="code", children=htmlnodes)])
+    return ParentNode(tag=block_type.value, children=htmlnodes)
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
@@ -100,4 +100,4 @@ def markdown_to_html_node(markdown):
             block_type = block_to_block_type(block)
             headingNum = None
         htmlnodes.append(block_to_html_node(block, block_type, headingNum))
-    return HTMLNode(tag="div", children=htmlnodes)
+    return ParentNode(tag="div", children=htmlnodes)
