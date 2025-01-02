@@ -2,7 +2,7 @@ import unittest
 from textnode import TextType, TextNode
 from htmlnode import HTMLNode
 from leafnode import LeafNode
-from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type, remove_block_markdown, block_to_html_node
+from converter import text_to_textnodes, markdown_to_blocks, BlockType, block_to_block_type, remove_block_markdown, block_to_html_node, markdown_to_html_node
 
 class TestConverter(unittest.TestCase):
     def test_text_to_textnodes(self):
@@ -93,7 +93,21 @@ class TestConverter(unittest.TestCase):
         block_type = block_to_block_type(block)
         self.assertEqual(block_to_html_node(block, block_type).__repr__(), HTMLNode(tag="ol", children=[HTMLNode(tag="li", children=[LeafNode(value="This")]), HTMLNode(tag="li", children=[LeafNode(value="is")]), HTMLNode(tag="li", children=[LeafNode(value="an")]), HTMLNode(tag="li", children=[LeafNode(value="ordered")]), HTMLNode(tag="li", children=[LeafNode(value="list")])]).__repr__())
     
+    def test_block_to_html_node_code(self):
+        block = "```This is code```"
+        block_type = block_to_block_type(block)
+        self.assertEqual(block_to_html_node(block, block_type).__repr__(), HTMLNode(tag="pre", children=[HTMLNode(tag="code", children=[LeafNode(value="This is code")])]).__repr__())
+    
     def test_block_to_html_node_quote(self):
         block = "> This\n> is\n> a\n> quote"
         block_type = block_to_block_type(block)
         self.assertEqual(block_to_html_node(block, block_type).__repr__(), HTMLNode(tag="blockquote", children=[LeafNode(value="This\nis\na\nquote")]).__repr__())
+    
+    def test_markdown_to_html_node(self):
+        markdown = "# This is a heading\n\nThis is a paragraph of text. It has some **bold** and *italic* words inside of it.\n\n* This is the first list item in a list block\n* This is a list item\n* This is another list item"
+        self.assertEqual(markdown_to_html_node(markdown).__repr__(),
+                        HTMLNode(tag="div", children=[
+                            HTMLNode(tag="h1", children=[LeafNode(value="This is a heading")]),
+                            HTMLNode(tag="p", children=[LeafNode(value="This is a paragraph of text. It has some "), LeafNode(tag="b", value="bold"), LeafNode(value=" and "), LeafNode(tag="i", value="italic"), LeafNode(value=" words inside of it.")]),
+                            HTMLNode(tag="ul", children=[HTMLNode(tag="li", children=[LeafNode(value="This is the first list item in a list block")]), HTMLNode(tag="li", children=[LeafNode(value="This is a list item")]), HTMLNode(tag="li", children=[LeafNode(value="This is another list item")])])
+                        ]).__repr__())

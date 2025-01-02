@@ -25,7 +25,7 @@ def markdown_to_blocks(markdown):
 class BlockType(Enum):
     PARAGRAPH = "p"
     HEADING = "h"
-    CODE = "code"
+    CODE = "pre"
     QUOTE = "blockquote"
     UNORDERED_LIST = "ul"
     ORDERED_LIST = "ol"
@@ -86,4 +86,18 @@ def block_to_html_node(block, block_type, headingNum=None):
         htmlnodes.append(textnode.text_node_to_html_node())
     if block_type == BlockType.HEADING:
         return HTMLNode(tag=f"h{headingNum}", children=htmlnodes)
+    if block_type == BlockType.CODE:
+        return HTMLNode(tag="pre", children=[HTMLNode(tag="code", children=htmlnodes)])
     return HTMLNode(tag=block_type.value, children=htmlnodes)
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    htmlnodes = []
+    for block in blocks:
+        if isinstance(block_to_block_type(block), tuple):
+            block_type, headingNum = block_to_block_type(block)
+        else:
+            block_type = block_to_block_type(block)
+            headingNum = None
+        htmlnodes.append(block_to_html_node(block, block_type, headingNum))
+    return HTMLNode(tag="div", children=htmlnodes)
